@@ -1,0 +1,9 @@
+build/
+install/
+log/
+logs/
+
+manual_console_temp.sh
+
+
+__pycache__/
