@@ -3,7 +3,7 @@ from typing import Any
 
 
 class Sensor:
-    def __init__(self, sensor_id: str | int) -> None:
+    def __init__(self, sensor_id: str | int | list) -> None:
         self.sensor_id = sensor_id
         self.sensor_mask = self._get_sensor_mask(sensor_id)
 
@@ -11,15 +11,14 @@ class Sensor:
         RANGE = "range"
         ENVELOPE = "envelope"
 
-    def _get_sensor_mask(self, sensor_id: str | int) -> str:
-        if isinstance(sensor_id, str):
-            try:
-                n = int(sensor_id.split("_")[-1])
-            except (ValueError, IndexError):
-                return "0x0"
+    def _get_sensor_mask(self, sensor_id: str | int | list) -> str:
+        if isinstance(sensor_id, list):
+            mask = 0
+            for s in sensor_id:
+                mask |= 1 << s
+            return hex(mask)
         else:
-            n = sensor_id
-        return hex(1 << n)
+            return hex(1 << int(sensor_id))
 
     def _get_comando(
         self,

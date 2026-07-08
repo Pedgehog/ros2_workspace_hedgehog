@@ -23,7 +23,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "envelope_simple = hedgehog_detection.envelope_simple:main"
+            "envelope_simple = hedgehog_detection.envelope_simple:main",
+            "envelope_multi = hedgehog_detection.envelope_multi:main",
         ],
     },
 )
