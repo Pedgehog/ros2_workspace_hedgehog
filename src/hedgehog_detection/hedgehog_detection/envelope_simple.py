@@ -1,10 +1,12 @@
 import rclpy
 from rclpy.node import Node
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
 from time import sleep
 from tdk_ussm_interfaces.srv import DistanceStreamoutService
 from tdk_ussm_interfaces.msg import Envelope
 from .utils.ussm_helper import Sensor
+from .utils.analyzer import analyze_peak
 
 
 class SimpleEnvelope(Node):
@@ -46,6 +48,8 @@ class SimpleEnvelope(Node):
         )
         self._ax.set_xlabel("Sample Index", fontsize=12)
         self._ax.set_ylabel("Amplitude", fontsize=12)
+        self._ax.xaxis.set_major_locator(MultipleLocator(20))
+        self._ax.xaxis.set_minor_locator(MultipleLocator(5))
         self._ax.grid(True, linestyle="--", alpha=0.7)
         self._ax.set_xlim(0, 256)
         self._ax.set_ylim(0, 150)
@@ -76,6 +80,9 @@ class SimpleEnvelope(Node):
         self._fig.canvas.draw_idle()
         plt.pause(0.01)
         self._current_cycle += 1
+        peak_msg = analyze_peak(msg.amplitudes, self._ussm_sensor)
+        self.get_logger().info(peak_msg)
+
         if self._current_cycle >= self._stop:
             self.get_logger().info("Maximale Anzahl an Zyklen erreicht.")
             self._update_sensor(self._ussm_sensor + 1)
