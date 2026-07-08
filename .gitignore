@@ -4,6 +4,6 @@ log/
 logs/
 
 manual_console_temp.sh
-
+test.sh
 
 __pycache__/
