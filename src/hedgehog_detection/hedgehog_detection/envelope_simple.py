@@ -6,7 +6,7 @@ from time import sleep
 from tdk_ussm_interfaces.srv import DistanceStreamoutService
 from tdk_ussm_interfaces.msg import Envelope
 from .utils.ussm_helper import Sensor
-from .utils.analyzer import analyze_peak
+from .utils.analyzer import Analyzer, MeasurementExporter
 
 
 class SimpleEnvelope(Node):
@@ -34,6 +34,10 @@ class SimpleEnvelope(Node):
         # running variables
         self._ussm_sensor = self._range[0]
         self._current_cycle = 0
+
+        # analyze classes
+        self._exporter = MeasurementExporter(self._ussm_sensor)
+        self._analyzer = Analyzer(self._ussm_sensor)
 
         # setup for plot
         plt.ion()
@@ -80,8 +84,18 @@ class SimpleEnvelope(Node):
         self._fig.canvas.draw_idle()
         plt.pause(0.01)
         self._current_cycle += 1
-        peak_msg = analyze_peak(msg.amplitudes, self._ussm_sensor)
-        self.get_logger().info(peak_msg)
+        peak_msg = self._analyzer.analyze_peak(msg.amplitudes)
+
+        if peak_msg:
+            log_lines = [
+                f"Sensor {self._ussm_sensor} | Peak {p['index_peak']}: Zeit={p['start_index']}, "
+                f"Länge={p['length']}, Höhe={p['height']} {p['warning']}"
+                for p in peak_msg
+            ]
+
+            self.get_logger().info("\n" + "\n".join(log_lines))
+
+            self._exporter.save(log_lines, self._fig)
 
         if self._current_cycle >= self._stop:
             self.get_logger().info("Maximale Anzahl an Zyklen erreicht.")
