@@ -15,10 +15,10 @@ class Sensor:
         if isinstance(sensor_id, list):
             mask = 0
             for s in sensor_id:
-                mask |= 1 << s
+                mask |= 1 << self._check_sensor_range(s)
             return hex(mask)
         else:
-            return hex(1 << int(sensor_id))
+            return hex(1 << int(self._check_sensor_range(sensor_id)))
 
     def _get_comando(
         self,
@@ -32,6 +32,11 @@ class Sensor:
             self.Commando.ENVELOPE: f"esa[{sensor_hex}] {sample_count} {time_per_sample};",
         }
         return command_map.get(commando, "")
+
+    def _check_sensor_range(self, sensor_id: int | str, length: int = 8) -> int:
+        if 0 <= (val := int(sensor_id)) < (1 << length):
+            return val
+        raise ValueError(f"Sensor_id {sensor_id} out of range")
 
     def __call__(
         self, command: Commando, sample_count: int = 256, time_per_sample: int = 50
