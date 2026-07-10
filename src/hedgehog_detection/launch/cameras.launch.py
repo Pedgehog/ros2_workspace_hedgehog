@@ -1,6 +1,9 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.conditions import LaunchConfigurationNotEquals
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
@@ -11,36 +14,40 @@ def generate_launch_description():
         "camera_config.yaml",
     )
 
+    camera_arg = DeclareLaunchArgument("cams", default_value="TB")
+
     return LaunchDescription(
         [
+            camera_arg,
             Node(
                 package="usb_cam",
                 executable="usb_cam_node_exe",
-                name="cam_front",
+                name="cam_button",
                 parameters=[config],
-                remappings=[("/image_raw", "/cam_front/image_raw")],
+                condition=LaunchConfigurationNotEquals("cams", "B"),
+                remappings=[("/image_raw", "/cam_button/image_raw")],
             ),
-            # Kamera Back
             Node(
                 package="usb_cam",
                 executable="usb_cam_node_exe",
-                name="cam_back",
+                name="cam_top",
                 parameters=[config],
-                remappings=[("/image_raw", "/cam_back/image_raw")],
+                condition=LaunchConfigurationNotEquals("cams", "T"),
+                remappings=[("/image_raw", "/cam_top/image_raw")],
             ),
-            # Viewer Front
             Node(
                 package="rqt_image_view",
                 executable="rqt_image_view",
-                name="rqt_image_view_front",
-                arguments=["/cam_front/image_raw"],
+                name="rqt_image_view_button",
+                condition=LaunchConfigurationNotEquals("cams", "B"),
+                arguments=["/cam_button/image_raw"],
             ),
-            # Viewer Back
             Node(
                 package="rqt_image_view",
                 executable="rqt_image_view",
-                name="rqt_image_view_back",
-                arguments=["/cam_back/image_raw"],
+                name="rqt_image_view_top",
+                condition=LaunchConfigurationNotEquals("cams", "T"),
+                arguments=["/cam_top/image_raw"],
             ),
         ]
     )
