@@ -35,6 +35,7 @@ setup(
         "console_scripts": [
             "envelope_simple = hedgehog_detection.envelope_simple:main",
             "envelope_multi = hedgehog_detection.envelope_multi:main",
+            "capture_camera = hedgehog_detection.chapture_picture_camera:main",
         ],
     },
 )
