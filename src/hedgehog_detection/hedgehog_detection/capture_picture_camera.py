@@ -6,6 +6,7 @@ from cv_bridge import CvBridge
 import cv2
 from pathlib import Path
 from datetime import datetime
+from typing import Dict, List
 
 
 class CameraCaptureNode(Node):
@@ -36,7 +37,10 @@ class CameraCaptureNode(Node):
     def update_image(self, msg, camera_name):
         self._latest_images[camera_name] = msg
 
-    def capture_service_callback(self, request, response):
+    def capture_service_callback(
+        self, request: Trigger.Request, response: Trigger.Response
+    ):
+        self.save_path.mkdir(parents=True, exist_ok=True)
         if not self._latest_images:
             response.success = False
             response.message = "Keine Bilder verfügbar."

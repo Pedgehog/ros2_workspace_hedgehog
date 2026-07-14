@@ -49,5 +49,11 @@ def generate_launch_description():
                 condition=LaunchConfigurationNotEquals("cams", "T"),
                 arguments=["/cam_top/image_raw"],
             ),
+            Node(
+                package="hedgehog_detection",
+                executable="capture_camera",
+                name="camera_capture_node",
+                output="screen",
+            ),
         ]
     )
