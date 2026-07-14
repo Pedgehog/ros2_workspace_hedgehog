@@ -6,14 +6,18 @@ from launch_ros.actions import Node
 def generate_launch_description():
     return LaunchDescription(
         [
-            Node(package="tdk_ussm", executable="tdk_ussm_node", name="tdk_ussm_node"),
+            Node(
+                package="tdk_ussm",
+                executable="tdk_ussm_node",
+                name="hedgehog_tdk_ussm_node",
+            ),
             TimerAction(
                 period=3.0,
                 actions=[
                     Node(
-                        package="hedgehog_detection",
+                        package="hedgehog_sensorik",
                         executable="envelope_multi",
-                        name="multi_envelope_node",
+                        name="hedgehog_multi_envelope_node",
                     )
                 ],
             ),

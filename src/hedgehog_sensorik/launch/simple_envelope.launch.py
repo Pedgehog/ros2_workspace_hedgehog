@@ -7,15 +7,19 @@ def generate_launch_description():
     return LaunchDescription(
         [
             # 1. Hardware Node starten
-            Node(package="tdk_ussm", executable="tdk_ussm_node", name="tdk_ussm_node"),
+            Node(
+                package="tdk_ussm",
+                executable="tdk_ussm_node",
+                name="hedgehog_tdk_ussm_node",
+            ),
             # 2. Analyse Node mit 3s Verzögerung starten
             TimerAction(
                 period=3.0,
                 actions=[
                     Node(
-                        package="hedgehog_detection",
+                        package="hedgehog_sensorik",
                         executable="envelope_simple",
-                        name="simple_envelope_node",
+                        name="hedgehog_simple_envelope_node",
                     )
                 ],
             ),
