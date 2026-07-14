@@ -13,7 +13,7 @@ class CameraCaptureNode(Node):
     def __init__(self):
         super().__init__("camera_capture_node")
 
-        self.save_path = Path.cwd() / "output" / "pcitures"
+        self.save_path = Path.cwd() / "output" / "pictures"
         self.save_path.mkdir(parents=True, exist_ok=True)
 
         self._bridge = CvBridge()
@@ -21,16 +21,16 @@ class CameraCaptureNode(Node):
 
         self.create_subscription(
             Image,
-            "/cam_button/image_raw",
+            "cam_button/image_raw",
             lambda msg: self.update_image(msg, "button"),
             10,
         )
         self.create_subscription(
-            Image, "/cam_top/image_raw", lambda msg: self.update_image(msg, "top"), 10
+            Image, "cam_top/image_raw", lambda msg: self.update_image(msg, "top"), 10
         )
 
         self._srv = self.create_service(
-            Trigger, "/capture_photo", self.capture_service_callback
+            Trigger, "capture_photo", self.capture_service_callback
         )
         self.get_logger().info(f"Service bereit. Speichere unter: {self.save_path}")
 

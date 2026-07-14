@@ -54,7 +54,7 @@ class MultiEnvelope(Node):
             self.get_logger().info(f"Subscribed auf: {topic}")
 
         self.cli = self.create_client(
-            DistanceStreamoutService, "/tdk_ussm/req_dist_streamout"
+            DistanceStreamoutService, "tdk_ussm/req_dist_streamout"
         )
         self.timer = self.create_timer(0.5, self._start_stream)
         self.create_timer(0.033, self._render_plot)

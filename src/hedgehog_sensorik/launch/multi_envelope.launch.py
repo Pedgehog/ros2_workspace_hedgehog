@@ -9,6 +9,7 @@ def generate_launch_description():
             Node(
                 package="tdk_ussm",
                 executable="tdk_ussm_node",
+                namespace="hedgehog",
                 name="hedgehog_tdk_ussm_node",
             ),
             TimerAction(
@@ -17,6 +18,7 @@ def generate_launch_description():
                     Node(
                         package="hedgehog_sensorik",
                         executable="envelope_multi",
+                        namespace="hedgehog",
                         name="hedgehog_multi_envelope_node",
                     )
                 ],

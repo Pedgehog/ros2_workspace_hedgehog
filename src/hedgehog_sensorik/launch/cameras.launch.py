@@ -8,10 +8,11 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    config = os.path.join(
-        get_package_share_directory("hedgehog_sensorik"),
-        "config",
-        "camera_config.yaml",
+    config_button = os.path.join(
+        get_package_share_directory("hedgehog_sensorik"), "config", "cam_button.yaml"
+    )
+    config_top = os.path.join(
+        get_package_share_directory("hedgehog_sensorik"), "config", "cam_top.yaml"
     )
 
     camera_arg = DeclareLaunchArgument("cams", default_value="TB")
@@ -22,36 +23,41 @@ def generate_launch_description():
             Node(
                 package="usb_cam",
                 executable="usb_cam_node_exe",
+                namespace="hedgehog",
                 name="hedgehog_cam_button",
-                parameters=[config],
+                parameters=[config_button],
                 condition=LaunchConfigurationNotEquals("cams", "B"),
-                remappings=[("/image_raw", "/cam_button/image_raw")],
+                remappings=[("image_raw", "cam_button/image_raw")],
             ),
             Node(
                 package="usb_cam",
                 executable="usb_cam_node_exe",
+                namespace="hedgehog",
                 name="hedgehog_cam_top",
-                parameters=[config],
+                parameters=[config_top],
                 condition=LaunchConfigurationNotEquals("cams", "T"),
-                remappings=[("/image_raw", "/cam_top/image_raw")],
+                remappings=[("image_raw", "cam_top/image_raw")],
             ),
             Node(
                 package="rqt_image_view",
                 executable="rqt_image_view",
+                namespace="hedgehog",
                 name="hedgehog_rqt_image_view_button",
                 condition=LaunchConfigurationNotEquals("cams", "B"),
-                arguments=["/cam_button/image_raw"],
+                arguments=["/hedgehog/cam_button/image_raw"],
             ),
             Node(
                 package="rqt_image_view",
                 executable="rqt_image_view",
+                namespace="hedgehog",
                 name="hedgehog_rqt_image_view_top",
                 condition=LaunchConfigurationNotEquals("cams", "T"),
-                arguments=["/cam_top/image_raw"],
+                arguments=["/hedgehog/cam_top/image_raw"],
             ),
             Node(
                 package="hedgehog_sensorik",
                 executable="capture_camera",
+                namespace="hedgehog",
                 name="hedgehog_camera_capture_node",
                 output="screen",
             ),
