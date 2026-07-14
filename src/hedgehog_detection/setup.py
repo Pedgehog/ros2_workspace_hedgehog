@@ -36,6 +36,8 @@ setup(
             "envelope_simple = hedgehog_detection.envelope_simple:main",
             "envelope_multi = hedgehog_detection.envelope_multi:main",
             "capture_camera = hedgehog_detection.chapture_picture_camera:main",
+            "servo_controller = hedgehog_detection.servo_controller_node:main",
+            "servo_logic = hedgehog_detection.servo_logic_node:main",
         ],
     },
 )
