@@ -5,4 +5,4 @@ front_middle:
   servo_id: {base: 5, top: 6}
 
 front_left:
-  servo_id: {base: 8, top: 7}
+  servo_id: {base: 7, top: 8}
