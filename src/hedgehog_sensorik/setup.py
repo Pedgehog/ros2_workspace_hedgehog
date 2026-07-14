@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = "hedgehog_detection"
+package_name = "hedgehog_sensorik"
 
 setup(
     name=package_name,
@@ -22,9 +22,9 @@ setup(
     ],
     install_requires=["setuptools"],
     zip_safe=True,
-    maintainer="administrator",
-    maintainer_email="administrator@todo.todo",
-    description="TODO: Package description",
+    maintainer="Lukas Köppl",
+    maintainer_email="lukas.koeppl@tdk.com",
+    description="The Sensric which is used in the hedgehog detection",
     license="TODO: License declaration",
     extras_require={
         "test": [
@@ -33,11 +33,11 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "envelope_simple = hedgehog_detection.envelope_simple:main",
-            "envelope_multi = hedgehog_detection.envelope_multi:main",
-            "capture_camera = hedgehog_detection.chapture_picture_camera:main",
-            "servo_controller = hedgehog_detection.servo_controller_node:main",
-            "servo_logic = hedgehog_detection.servo_logic_node:main",
+            "envelope_simple = hedgehog_sensorik.envelope_simple:main",
+            "envelope_multi = hedgehog_sensorik.envelope_multi:main",
+            "capture_camera = hedgehog_sensorik.chapture_picture_camera:main",
+            "servo_controller = hedgehog_sensorik.servo_controller_node:main",
+            "servo_logic = hedgehog_sensorik.servo_logic_node:main",
         ],
     },
 )
