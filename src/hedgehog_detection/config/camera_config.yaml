@@ -1,6 +1,6 @@
 cam_top:
   ros__parameters:
-    video_device: "/dev/video3"
+    video_device: "/dev/video2"
     image_width: 1024
     image_height: 576
     pixel_format: "yuyv"
