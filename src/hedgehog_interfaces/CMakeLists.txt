@@ -11,6 +11,7 @@ find_package(rosidl_default_generators REQUIRED)
 # Hier fügst du deine .srv Datei hinzu
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetMode.srv"
+  "srv/GetSensorIds.srv"
 )
 
 if(BUILD_TESTING)
