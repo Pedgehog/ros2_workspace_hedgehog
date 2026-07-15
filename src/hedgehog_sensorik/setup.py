@@ -23,8 +23,8 @@ setup(
     license="TODO: License declaration",
     entry_points={
         "console_scripts": [
-            "envelope_simple = hedgehog_sensorik.envelope_simple:main",
-            "envelope_multi = hedgehog_sensorik.envelope_multi:main",
+            "trigger_node = hedgehog_sensorik.trigger_node:main",
+            "plotting_node = hedgehog_sensorik.plotting_node:main",
             "capture_camera = hedgehog_sensorik.capture_picture_camera:main",
             "servo_controller = hedgehog_sensorik.servo_controller_node:main",
             "servo_logic = hedgehog_sensorik.servo_logic_node:main",
