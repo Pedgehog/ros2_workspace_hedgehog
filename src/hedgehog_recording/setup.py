@@ -16,7 +16,10 @@ setup(
             glob(os.path.join("launch", "*launch.py")),
         ),
     ],
-    install_requires=["setuptools"],
+    install_requires=[
+        "setuptools",
+        "sqlalchemy",
+    ],
     zip_safe=True,
     maintainer="Lukas Köppl",
     maintainer_email="lukas.koeppl@tdk.com",
@@ -24,6 +27,6 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": [],
+        "console_scripts": ["database_node = hedgehog_recording.database_node:main"],
     },
 )
