@@ -28,6 +28,7 @@ setup(
             "capture_camera = hedgehog_sensorik.capture_picture_camera:main",
             "servo_controller = hedgehog_sensorik.servo_controller_node:main",
             "servo_logic = hedgehog_sensorik.servo_logic_node:main",
+            "stress = hedgehog_sensorik.stress_test_ussm:main",
         ],
     },
 )
