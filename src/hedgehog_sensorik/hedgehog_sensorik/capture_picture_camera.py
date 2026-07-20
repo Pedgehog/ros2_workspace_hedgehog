@@ -7,6 +7,7 @@ import cv2
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List
+from hedgehog_interfaces.srv import Capture
 
 
 class CameraCaptureNode(Node):
@@ -30,37 +31,37 @@ class CameraCaptureNode(Node):
         )
 
         self._srv = self.create_service(
-            Trigger, "capture_photo", self.capture_service_callback
+            Capture, "capture_photo", self.capture_service_callback
         )
         self.get_logger().info(f"Service bereit. Speichere unter: {self.save_path}")
 
     def update_image(self, msg, camera_name):
         self._latest_images[camera_name] = msg
 
-    def capture_service_callback(
-        self, request: Trigger.Request, response: Trigger.Response
-    ):
+    def capture_service_callback(self, request, response):
         self.save_path.mkdir(parents=True, exist_ok=True)
+
         if not self._latest_images:
             response.success = False
+            response.file_paths = []
             response.message = "Keine Bilder verfügbar."
             return response
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        saved_files = []
+        saved_paths = []
 
         for name, img_msg in self._latest_images.items():
             filename = self.save_path / f"{name}_{timestamp}.jpg"
-
             try:
                 cv_image = self._bridge.imgmsg_to_cv2(img_msg, desired_encoding="bgr8")
-                cv2.imwrite(str(filename), cv_image)  # cv2 braucht einen String-Pfad
-                saved_files.append(name)
+                cv2.imwrite(str(filename), cv_image)
+                saved_paths.append(str(filename))
             except Exception as e:
                 self.get_logger().error(f"Fehler bei {name}: {e}")
 
         response.success = True
-        response.message = f"Fotos gespeichert: {', '.join(saved_files)}"
+        response.file_paths = saved_paths
+        response.message = f"{len(saved_paths)} Bilder erfolgreich gespeichert."
         return response
 
 

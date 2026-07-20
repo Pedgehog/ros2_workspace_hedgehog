@@ -1,6 +1,7 @@
 from typing import Dict, List
+from pathlib import Path
 from .database import Database
-from ..database.models import Measurement, SensorEnvelope
+from ..database.models import Measurement, SensorEnvelope, MeasurementPicture
 
 
 class SensorDB:
@@ -23,7 +24,7 @@ class SensorDB:
     def _check_sensor(self, new_sensor_id: int) -> bool:
         return new_sensor_id in self._sensor_map
 
-    def _get_or_create_measurement(self, new_sensor_id: int) -> int:
+    def get_or_create_measurement(self, new_sensor_id: int) -> int | None:
         all_sensors_received = False not in self._received_sensor.values()
         sensor_already_received = self._received_sensor.get(new_sensor_id, False)
 
@@ -49,12 +50,13 @@ class SensorDB:
             self.active_measurement_id = new_meas.id
         return self.active_measurement_id
 
-    def insert_new_envelope(self, sensor_id: int, time_axis: list, amplitudes: list):
-        meas_id = self._get_or_create_measurement(sensor_id)
+    def insert_new_envelope(
+        self, sensor_id: int, measurement_id: int, time_axis: list, amplitudes: list
+    ):
         envelope_id = None
         with self._db.session_scope() as session:
             envelope = SensorEnvelope(
-                measurement_id=meas_id,
+                measurement_id=measurement_id,
                 sensor_id=sensor_id,
                 time_axis=time_axis,
                 amplitudes=amplitudes,
@@ -63,4 +65,17 @@ class SensorDB:
             session.flush()
             envelope_id = envelope.id
 
-        return envelope_id, meas_id
+        return envelope_id, measurement_id
+
+    def insert_new_picture(self, measurement_id: int, picture_path: str):
+        path = Path(picture_path)
+        try:
+            path = path.relative_to(Path.cwd() / "output")
+        except ValueError:
+            pass
+
+        with self._db.session_scope() as session:
+            picture = MeasurementPicture(measurement_id=measurement_id, path=str(path))
+            session.add(picture)
+            session.flush()
+            return picture.id, measurement_id

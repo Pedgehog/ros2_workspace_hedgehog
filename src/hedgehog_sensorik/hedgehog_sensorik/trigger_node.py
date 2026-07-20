@@ -31,7 +31,7 @@ class TriggerNode(Node):
         self.pending_futures = []
 
         # Festes, schnelles Intervall wie im Plot-Skript
-        self.timer = self.create_timer(0.8, self._send_trigger)
+        self.timer = self.create_timer(1, self._send_trigger)
         self.get_logger().info("TriggerNode gestartet mit Speed: 0.4s")
 
     def _handle_get_sensors(self, request, response):

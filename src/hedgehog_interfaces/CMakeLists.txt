@@ -12,6 +12,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetMode.srv"
   "srv/GetSensorIds.srv"
+  "srv/Capture.srv"
 )
 
 if(BUILD_TESTING)

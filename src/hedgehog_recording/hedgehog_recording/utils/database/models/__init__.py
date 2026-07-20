@@ -1,1 +1,1 @@
-from .sensor_data import Measurement, SensorEnvelope
+from .sensor_data import Measurement, SensorEnvelope, MeasurementPicture

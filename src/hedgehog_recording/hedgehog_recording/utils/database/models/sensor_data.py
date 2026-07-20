@@ -17,6 +17,10 @@ class Measurement(Base):
         "SensorEnvelope", back_populates="measurement", cascade="all, delete-orphan"
     )
 
+    pictures = relationship(
+        "MeasurementPicture", back_populates="measurement", cascade="all, delete-orphan"
+    )
+
     def __init__(
         self,
         label: str = "Not set",
@@ -46,3 +50,20 @@ class SensorEnvelope(Base):
         self.sensor_id = sensor_id
         self.time_axis = time_axis
         self.amplitudes = amplitudes
+
+
+class MeasurementPicture(Base):
+    __tablename__ = "measurements_pictures"
+
+    id = Column(Integer, primary_key=True)
+    path = Column(String, default="")
+
+    measurement_id = Column(
+        Integer, ForeignKey("measurements.id", ondelete="CASCADE"), nullable=False
+    )
+
+    measurement = relationship("Measurement", back_populates="pictures")
+
+    def __init__(self, measurement_id: int, path: str):
+        self.measurement_id = measurement_id
+        self.path = path

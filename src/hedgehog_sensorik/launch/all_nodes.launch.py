@@ -46,7 +46,7 @@ def generate_launch_description():
     )
 
     button_cam = TimerAction(
-        period=4.0,
+        period=6.0,
         actions=[
             Node(
                 package="usb_cam",
@@ -56,6 +56,19 @@ def generate_launch_description():
                 parameters=[config_button],
                 remappings=[("image_raw", "cam_button/image_raw")],
             )
+        ],
+    )
+
+    capture_pictures = TimerAction(
+        period=6.0,
+        actions=[
+            Node(
+                package="hedgehog_sensorik",
+                executable="capture_camera",
+                namespace="hedgehog",
+                name="hedgehog_camera_capture_node",
+                output="screen",
+            ),
         ],
     )
 
@@ -76,7 +89,7 @@ def generate_launch_description():
     )
 
     plotting_node = TimerAction(
-        period=2.0,
+        period=1.0,
         actions=[
             Node(
                 package="hedgehog_sensorik",
@@ -96,5 +109,6 @@ def generate_launch_description():
             view_top,
             view_button,
             plotting_node,
+            capture_pictures,
         ]
     )

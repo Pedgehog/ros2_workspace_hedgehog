@@ -8,6 +8,8 @@
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
+  <depend>tdk_ussm_interfaces</depend>
+  <depend>hedgehog_interfaces</depend>
   <depend>std_srvs</depend>
   <depend>python3-sqlalchemy</depend>
 
