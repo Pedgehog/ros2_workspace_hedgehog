@@ -1,0 +1,17 @@
+cam_top:
+  ros__parameters:
+    video_device: "/dev/video2"
+    image_width: 1024
+    image_height: 576
+    pixel_format: "yuyv"
+    framerate: 30.0
+    brightness: 100
+
+cam_button:
+  ros__parameters:
+    video_device: "/dev/video0"
+    image_width: 1024
+    image_height: 576
+    pixel_format: "yuyv"
+    framerate: 30.0
+    brightness: 100

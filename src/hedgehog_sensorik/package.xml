@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>hedgehog_detection</name>
+  <name>hedgehog_sensorik</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="administrator@todo.todo">administrator</maintainer>
+  <description>The Sensric which is used in the hedgehog detection</description>
+  <maintainer email="lukas.koeppl@tdk.com">Lukas Köppl</maintainer>
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
   <depend>tdk_ussm_interfaces</depend>
+  <depend>hedgehog_interfaces</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

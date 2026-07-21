@@ -1,0 +1,10 @@
+build/
+install/
+log/
+logs/
+output/
+
+manual_console_temp.sh
+test.sh
+
+__pycache__/
