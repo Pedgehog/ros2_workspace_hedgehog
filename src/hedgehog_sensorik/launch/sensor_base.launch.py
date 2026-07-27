@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import TimerAction, DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, TimerAction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -12,7 +12,16 @@ def generate_launch_description():
     )
 
     tdk_node = Node(
-        package="tdk_ussm", executable="tdk_ussm_node", name="tdk_ussm_node"
+        package="tdk_ussm",
+        executable="tdk_ussm_node",
+        name="tdk_ussm_node",
+        parameters=[
+            {
+                "com_port": "/dev/tdk_ussm",
+                "avg_window": 5,
+                "sensor_ids": LaunchConfiguration("sensor_ids"),
+            }
+        ],
     )
 
     trigger_node = TimerAction(
@@ -22,7 +31,6 @@ def generate_launch_description():
                 package="hedgehog_sensorik",
                 executable="trigger_node",
                 name="trigger_node",
-                # Nutze die LaunchConfiguration für den Parameter
                 parameters=[{"sensor_ids": LaunchConfiguration("sensor_ids")}],
             )
         ],
