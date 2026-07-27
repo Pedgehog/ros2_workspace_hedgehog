@@ -27,6 +27,9 @@ setup(
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["database_node = hedgehog_recording.database_node:main"],
+        "console_scripts": [
+            "database_node = hedgehog_recording.database_node:main",
+            "recording_controller_node = hedgehog_recording.recording_controller_node:main",
+        ],
     },
 )
