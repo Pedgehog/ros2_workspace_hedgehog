@@ -12,7 +12,6 @@ class PlottingNode(Node):
         super().__init__("plotting_node")
         self.active_sensors: List[int] = []
 
-        # Warten, bis Trigger-Node da ist und IDs abfragen
         client = self.create_client(GetSensorIds, "get_active_sensors")
         while not client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info("Warte auf Trigger-Node...")
@@ -20,7 +19,6 @@ class PlottingNode(Node):
         future = client.call_async(GetSensorIds.Request())
         rclpy.spin_until_future_complete(self, future)
 
-        # Pylance-Sicherheit: Prüfung auf None
         result = future.result()
         if result is not None:
             self.active_sensors = list(result.sensor_ids)
@@ -35,10 +33,8 @@ class PlottingNode(Node):
         }
         self._init_plot()
 
-        # Timer für das Rendering
         self.create_timer(0.033, self._render_plot)
 
-        # Subscriptions
         for sid in self.active_sensors:
             self.create_subscription(
                 Envelope, f"/ussm_envelope{sid}", self._get_callback_for_sid(sid), 1
