@@ -12,8 +12,8 @@ alias gb='clear && git branch'
 alias grw='clear && git rebase -i'
 alias gg='clear && git log -4 --oneline && git status'
 # Git-Github Issues
-alias gch='bash ~/.development/check_issues.sh'
-alias gi='bash ~/.development/print_issues.sh'
+alias gch='bash helperscrips/check_issues.sh'
+alias gi='bash helperscrips/print_issues.sh'
 
 alias mach='sudo'
 alias vs='code . && exit'
@@ -25,7 +25,7 @@ alias l='ls -CF'
 
 alias get_idf='. $HOME/esp/esp-idf/export.sh'
 alias testing='uv run pytest'
-alias treee='tree -I "venv|.git|__pycache__|node_modules"'
+alias treee='tree -I "venv|.git|__pycache__|node_modules|output|build|install|log"'
 alias vs='code . && exit'
 
 
