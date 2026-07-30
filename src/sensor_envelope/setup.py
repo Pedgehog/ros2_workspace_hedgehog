@@ -1,8 +1,8 @@
-from setuptools import find_packages, setup
 import os
 from glob import glob
+from setuptools import find_packages, setup
 
-package_name = "hedgehog_recording"
+package_name = "sensor_envelope"
 
 setup(
     name=package_name,
@@ -13,23 +13,20 @@ setup(
         ("share/" + package_name, ["package.xml"]),
         (
             os.path.join("share", package_name, "launch"),
-            glob(os.path.join("launch", "*launch.py")),
+            glob(os.path.join("launch", "*.launch.py")),
         ),
     ],
-    install_requires=[
-        "setuptools",
-        "sqlalchemy",
-    ],
+    install_requires=["setuptools"],
     zip_safe=True,
-    maintainer="Lukas Köppl",
-    maintainer_email="lukas.koeppl@tdk.com",
-    description="Recording functionality for hedgehog detection",
+    maintainer="administrator",
+    maintainer_email="administrator@todo.todo",
+    description="Sensor envelope trigger and plotting package",
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "database_node = hedgehog_recording.database_node:main",
-            "recording_controller_node = hedgehog_recording.recording_controller_node:main",
+            "trigger_node = sensor_envelope.trigger_node:main",
+            "plotting_node = sensor_envelope.plotting_node:main",
         ],
     },
 )
