@@ -1,8 +1,0 @@
-front_right:
-  servo_id: {base: 2, top: 1}
-
-front_middle:
-  servo_id: {base: 5, top: 6}
-
-front_left:
-  servo_id: {base: 7, top: 8}

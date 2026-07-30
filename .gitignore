@@ -4,7 +4,8 @@ log/
 logs/
 output/
 
-manual_console_temp.sh
-test.sh
-
 __pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pyc
