@@ -3,26 +3,53 @@ from fastapi import FastAPI
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, ReliabilityPolicy
-from sensor_msgs.msg import BatteryState
+from tdk_ussm_interfaces.msg import Envelope
+from hedgehog_interfaces.srv import GetSensorIds
 import uvicorn
 
-from cloud_bridge.routes.web import router as web_router, set_node
+from cloud_bridge.routes.web import router as web_router, set_node as set_web_node
+from cloud_bridge.routes.recording import (
+    router as recording_router,
+    set_node as set_recording_node,
+)
+from cloud_bridge.routes.ussm import router as ussm_router, set_node as set_ussm_node
 
 app = FastAPI()
 app.include_router(web_router)
+app.include_router(recording_router)
+app.include_router(ussm_router)
 
 
 class WebpageNode(Node):
     def __init__(self):
         super().__init__("webpage_node")
-        self.get_logger().info(
-            "Webpage Node with BatteryState subscription has been started."
-        )
+        self.get_logger().info("Webpage Node for USSM & Recording has been started.")
 
-        self.battery_voltage = 0.0
-        self.battery_percentage = 0.0
+        self.active_sensors = []
+        self.ussm_data = {}
+        self.ussm_id = 0
 
-        set_node(self)
+        set_web_node(self)
+        set_recording_node(self)
+        set_ussm_node(self)
+
+        client = self.create_client(GetSensorIds, "/sensoric/get_active_sensors")
+        while not client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info(
+                "Waiting for service '/sensoric/get_active_sensors'..."
+            )
+
+        future = client.call_async(GetSensorIds.Request())
+        rclpy.spin_until_future_complete(self, future)
+
+        result = future.result()
+        if result is not None:
+            self.active_sensors = list(result.sensor_ids)
+        else:
+            self.get_logger().error("Service call failed. Using default.")
+            self.active_sensors = [0, 1, 2, 3, 4]
+
+        self.get_logger().info(f"Received sensors from service: {self.active_sensors}")
 
         qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
@@ -30,19 +57,29 @@ class WebpageNode(Node):
             depth=10,
         )
 
-        self.battery_subscription = self.create_subscription(
-            BatteryState,
-            "/j100_0809/platform/bms/state",
-            self.battery_callback,
-            qos_profile,
-        )
+        for sid in self.active_sensors:
+            self.create_subscription(
+                Envelope,
+                f"/ussm_envelope{sid}",
+                self._get_callback_for_sid(sid),
+                qos_profile,
+            )
 
-    def battery_callback(self, msg: BatteryState):
-        self.battery_voltage = msg.voltage
-        self.battery_percentage = msg.percentage * 100.0 if msg.percentage >= 0 else 0.0
-        self.get_logger().info(
-            f"Battery update: {self.battery_percentage:.1f}% ({msg.voltage}V)"
-        )
+    def _get_callback_for_sid(self, sid: int):
+        def callback(msg: Envelope):
+            self._ussm_callback(msg, sid)
+
+        return callback
+
+    def _ussm_callback(self, msg: Envelope, sensor_id: int):
+        self.ussm_data[sensor_id] = list(msg.amplitudes)
+        self.ussm_id += 1
+
+    def start_recording(self):
+        self.get_logger().info("Recording started via API request.")
+
+    def stop_recording(self):
+        self.get_logger().info("Recording stopped via API request.")
 
 
 def run_fastapi():
