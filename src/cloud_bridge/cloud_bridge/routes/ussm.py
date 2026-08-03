@@ -12,10 +12,10 @@ def set_node(node):
 
 
 @router.get("/api/ussm/sensors")
-def get_active_sensors():
-    if _node_reference and hasattr(_node_reference, "active_sensors"):
-        return {"active_sensors": _node_reference.active_sensors}
-    return {"active_sensors": []}
+def get_ussm_settings_route():
+    if _node_reference and hasattr(_node_reference, "get_ussm_settings"):
+        return {"settings": _node_reference.get_ussm_settings()}
+    return {"settings": {}}
 
 
 @router.websocket("/ws/ussms")

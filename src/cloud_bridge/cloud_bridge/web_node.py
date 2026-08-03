@@ -9,6 +9,7 @@ from std_srvs.srv import Trigger
 from cv_bridge import CvBridge
 import cv2
 import uvicorn
+import json
 
 from hedgehog_interfaces.srv import GetSensorIds
 from tdk_ussm_interfaces.msg import Envelope
@@ -172,6 +173,28 @@ class WebpageNode(Node):
         if result is not None:
             return result.message.lower() == "true"
         return False
+
+    def get_ussm_settings(self) -> dict:
+        client = self.create_client(Trigger, "/sensoric/get_ussm_settings")
+
+        if not client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().warn(
+                "Service /sensoric/get_ussm_settings nicht verfügbar!"
+            )
+            return {}
+
+        req = Trigger.Request()
+        future = client.call_async(req)
+        rclpy.spin_until_future_complete(self, future, timeout_sec=2.0)
+
+        result = future.result()
+        if result is not None:
+            if result.success:
+                try:
+                    return json.loads(result.message)
+                except Exception:
+                    return {"raw_message": result.message}
+        return {}
 
 
 def run_fastapi():
