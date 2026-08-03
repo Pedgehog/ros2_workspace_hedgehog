@@ -5,6 +5,7 @@ from typing import Dict, Callable
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger
 from hedgehog_interfaces.srv import Capture, GetSensorIds, ManageDatabase
+from hedgehog_interfaces.srv import ManageDatabase
 from tdk_ussm_interfaces.msg import Envelope
 from .utils.database.database import Database
 from .utils.database.database_senoric import SensorDB
