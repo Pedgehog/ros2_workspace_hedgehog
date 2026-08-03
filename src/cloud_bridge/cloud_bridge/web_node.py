@@ -130,6 +130,12 @@ class WebpageNode(Node):
     def stop_recording(self):
         self.get_logger().info("Recording stopped via API request.")
 
+    def trigger_recording(self):
+        self.get_logger().info("Recording triggered via API request.")
+
+    def is_recording(self):
+        return False
+
 
 def run_fastapi():
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
