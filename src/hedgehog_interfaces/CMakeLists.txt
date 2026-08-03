@@ -13,6 +13,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetMode.srv"
   "srv/GetSensorIds.srv"
   "srv/Capture.srv"
+  "srv/ManageDatabase.srv"
 )
 
 if(BUILD_TESTING)

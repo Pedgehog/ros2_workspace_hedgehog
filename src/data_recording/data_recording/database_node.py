@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, Callable
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger
-from hedgehog_interfaces.srv import Capture, GetSensorIds
+from hedgehog_interfaces.srv import Capture, GetSensorIds, ManageDatabase
 from tdk_ussm_interfaces.msg import Envelope
 from .utils.database.database import Database
 from .utils.database.database_senoric import SensorDB
@@ -107,6 +107,12 @@ class DatabaseNode(Node):
             Trigger, "/database/toggle_recording", self._toggle_service_callback
         )
 
+        self._db_management_service = self.create_service(
+            ManageDatabase,
+            "/database/manage_database",
+            self._manage_database_service_callback,
+        )
+
     def _set_recording_state(self, new_state: bool, source: str) -> None:
         if self._record_triggered == new_state:
             return
@@ -141,6 +147,106 @@ class DatabaseNode(Node):
         response.success = True
         response.message = str(self._record_triggered)
         return response
+
+    def _manage_database_service_callback(
+        self, request: ManageDatabase.Request, response: ManageDatabase.Response
+    ) -> ManageDatabase.Response:
+        action = request.action.lower()
+        db_name = request.db_name.strip()
+
+        output_dir = Path.cwd() / "output" / "databases"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        if action == "current":
+            response.success = True
+            response.message = self._db_name
+            response.available_db_names = self._get_all_db_files(output_dir)
+            return response
+
+        elif action == "list":
+            response.success = True
+            response.message = (
+                f"Found {len(self._get_all_db_files(output_dir))} databases."
+            )
+            response.available_db_names = self._get_all_db_files(output_dir)
+            return response
+
+        elif action == "create":
+            if not db_name:
+                response.success = False
+                response.message = "Database name cannot be empty."
+                response.available_db_names = self._get_all_db_files(output_dir)
+                return response
+
+            if not db_name.endswith(".db"):
+                db_name += ".db"
+
+            db_path = output_dir / db_name
+            try:
+                new_db = Database(db_path)
+                new_db.init_db()
+                response.success = True
+                response.message = f"Database '{db_name}' created successfully."
+                response.available_db_names = self._get_all_db_files(output_dir)
+                self.get_logger().info(
+                    f"[DB MANAGEMENT] Created new database: {db_name}"
+                )
+            except Exception as e:
+                response.success = False
+                response.message = f"Failed to create database: {str(e)}"
+                response.available_db_names = self._get_all_db_files(output_dir)
+            return response
+
+        elif action == "switch":
+            if not db_name:
+                response.success = False
+                response.message = "Database name cannot be empty for switching."
+                response.available_db_names = self._get_all_db_files(output_dir)
+                return response
+
+            if not db_name.endswith(".db"):
+                db_name += ".db"
+
+            db_path = output_dir / db_name
+            if not db_path.exists():
+                response.success = False
+                response.message = (
+                    f"Database '{db_name}' does not exist. Use 'create' first."
+                )
+                response.available_db_names = self._get_all_db_files(output_dir)
+                return response
+
+            try:
+                if self._record_triggered:
+                    self._set_recording_state(False, "DB SWITCH")
+
+                self._db_name = db_name
+                self._db = Database(db_path)
+                self._sdb = SensorDB(list(self._sensor_map.values()), self._db)
+                self._db.init_db()
+
+                response.success = True
+                response.message = f"Successfully switched to database '{db_name}'."
+                response.available_db_names = self._get_all_db_files(output_dir)
+                self.get_logger().info(
+                    f"[DB MANAGEMENT] Switched active database to: {db_name}"
+                )
+            except Exception as e:
+                response.success = False
+                response.message = f"Failed to switch database: {str(e)}"
+                response.available_db_names = self._get_all_db_files(output_dir)
+            return response
+
+        else:
+            response.success = False
+            response.message = f"Unknown action '{action}'. Use 'current', 'list', 'create', or 'switch'."
+            response.available_db_names = self._get_all_db_files(output_dir)
+            return response
+
+    def _get_all_db_files(self, output_dir: Path) -> list:
+        if not output_dir.exists():
+            return []
+        return [p.name for p in output_dir.glob("*.db")]
 
     def _get_callback_for_sensor(self, s_id: int) -> Callable[[Envelope], None]:
         def callback(msg: Envelope) -> None:

@@ -1,0 +1,8 @@
+# Request
+string action
+string db_name
+---
+# Response
+bool success
+string message
+string[] available_db_names
