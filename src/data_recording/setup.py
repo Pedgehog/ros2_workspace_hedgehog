@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 import os
 from glob import glob
 
-package_name = "hedgehog_recording"
+package_name = "data_recording"
 
 setup(
     name=package_name,
@@ -28,8 +28,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "database_node = hedgehog_recording.database_node:main",
-            "recording_controller_node = hedgehog_recording.recording_controller_node:main",
+            "database_node = data_recording.database_node:main",
+            "recording_controller_node = data_recording.recording_controller_node:main",
         ],
     },
 )

@@ -16,7 +16,7 @@ cd ~/ros2_ws_hedgehog
 rm -rf build/ install/ log/
 colcon build --packages-select hedgehog_interfaces
 # 3. Nur die zwei Pakete bauen, die du willst
-colcon build --packages-select hedgehog_recording sensor_envelope servo_control camera_control cloud_bridge  --symlink-install
+colcon build --packages-select data_recording sensor_envelope servo_control camera_control cloud_bridge  --symlink-install
 
 # 4. Neu sourcen
 source install/setup.bash

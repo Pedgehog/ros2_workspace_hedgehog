@@ -61,7 +61,7 @@ class DatabaseNode(Node):
                 Envelope, topic, self._get_callback_for_sensor(s_id), 10
             )
 
-        self.cli = self.create_client(Capture, "/hedgehog/capture_photo")
+        self.cli = self.create_client(Capture, "/camstream/capture_photo")
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info("Waiting for capture_photo service...")
 
