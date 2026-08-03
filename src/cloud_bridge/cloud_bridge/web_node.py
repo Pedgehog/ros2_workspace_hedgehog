@@ -4,6 +4,8 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import Image
+from std_msgs.msg import Bool
+from std_srvs.srv import Trigger
 from cv_bridge import CvBridge
 import cv2
 import uvicorn
@@ -50,6 +52,17 @@ class WebpageNode(Node):
         set_recording_node(self)
         set_ussm_node(self)
         set_camera_node(self)
+
+        self.create_subscription(
+            Bool, "/database/measurement_success", self._success_callback, 10
+        )
+
+        self._status_client = self.create_client(
+            Trigger, "/database/get_recording_status"
+        )
+        self._start_client = self.create_client(Trigger, "/database/start_recording")
+        self._stop_client = self.create_client(Trigger, "/database/stop_recording")
+        self._toggle_client = self.create_client(Trigger, "/database/toggle_recording")
 
         client = self.create_client(GetSensorIds, "/sensoric/get_active_sensors")
         while not client.wait_for_service(timeout_sec=1.0):
@@ -124,16 +137,40 @@ class WebpageNode(Node):
         except Exception as e:
             self.get_logger().error(f"Failed to process cam_top image: {e}")
 
+    def _success_callback(self, msg: Bool) -> None:
+        if msg.data:
+            self.get_logger().info(
+                "[CONTROL] Measurement success confirmed from database."
+            )
+
     def start_recording(self):
         self.get_logger().info("Recording started via API request.")
+        if self._start_client.wait_for_service(timeout_sec=0.1):
+            future = self._start_client.call_async(Trigger.Request())
+            rclpy.spin_until_future_complete(self, future, timeout_sec=0.5)
 
     def stop_recording(self):
         self.get_logger().info("Recording stopped via API request.")
+        if self._stop_client.wait_for_service(timeout_sec=0.1):
+            future = self._stop_client.call_async(Trigger.Request())
+            rclpy.spin_until_future_complete(self, future, timeout_sec=0.5)
 
     def trigger_recording(self):
-        self.get_logger().info("Recording triggered via API request.")
+        self.get_logger().info("Recording triggered (toggled) via API request.")
+        if self._toggle_client.wait_for_service(timeout_sec=0.1):
+            future = self._toggle_client.call_async(Trigger.Request())
+            rclpy.spin_until_future_complete(self, future, timeout_sec=0.5)
 
     def is_recording(self):
+        if not self._status_client.wait_for_service(timeout_sec=0.1):
+            return False
+
+        future = self._status_client.call_async(Trigger.Request())
+        rclpy.spin_until_future_complete(self, future, timeout_sec=0.5)
+
+        result = future.result()
+        if result is not None:
+            return result.message.lower() == "true"
         return False
 
 

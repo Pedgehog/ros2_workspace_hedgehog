@@ -3,7 +3,8 @@ from rclpy.node import Node
 from pathlib import Path
 from typing import Dict, Callable
 from std_msgs.msg import Bool
-from hedgehog_interfaces.srv import Capture
+from std_srvs.srv import Trigger
+from hedgehog_interfaces.srv import Capture, GetSensorIds
 from tdk_ussm_interfaces.msg import Envelope
 from .utils.database.database import Database
 from .utils.database.database_senoric import SensorDB
@@ -23,20 +24,55 @@ class DatabaseNode(Node):
 
     def _init_parameters(self) -> None:
         self.declare_parameter("db_name", "hedgehog_records.db")
-        self.declare_parameter("ussm_sensoren", "1-4")
+        self.declare_parameter("ussm_sensoren", "")
 
         self._db_name = self.get_parameter("db_name").get_parameter_value().string_value
         sensor_range = (
             self.get_parameter("ussm_sensoren").get_parameter_value().string_value
         )
 
-        start, end = map(int, sensor_range.split("-"))
-        self._sensor_map: Dict[str, int] = {
-            f"/ussm_envelope{i}": i for i in range(start, end + 1)
-        }
+        sensor_ids = []
+
+        if sensor_range:
+            try:
+                start, end = map(int, sensor_range.split("-"))
+                sensor_ids = list(range(start, end + 1))
+                self.get_logger().info(
+                    f"Using sensors from parameter range: {sensor_ids}"
+                )
+            except Exception as e:
+                self.get_logger().warn(
+                    f"Failed to parse 'ussm_sensoren' parameter ({e}), falling back to service."
+                )
+
+        if not sensor_ids:
+            sensor_ids = self._fetch_active_sensors_from_service()
+
+        self._sensor_map: Dict[str, int] = {f"/ussm_envelope{i}": i for i in sensor_ids}
 
         self._old_measurment_id: int = 0
         self._record_triggered: bool = False
+
+    def _fetch_active_sensors_from_service(self) -> list:
+        client = self.create_client(GetSensorIds, "/sensoric/get_active_sensors")
+        while not client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info(
+                "Waiting for service '/sensoric/get_active_sensors'..."
+            )
+
+        future = client.call_async(GetSensorIds.Request())
+        rclpy.spin_until_future_complete(self, future)
+
+        result = future.result()
+        if result is not None:
+            active_sensors = list(result.sensor_ids)
+            self.get_logger().info(f"Received sensors from service: {active_sensors}")
+            return active_sensors
+        else:
+            self.get_logger().error(
+                "Service call failed. Using default sensors [0, 1, 2, 3, 4]."
+            )
+            return [0, 1, 2, 3, 4]
 
     def _init_database(self) -> None:
         db_path = Path.cwd() / "output" / "databases" / self._db_name
@@ -45,13 +81,6 @@ class DatabaseNode(Node):
         self._db.init_db()
 
     def _init_communication(self) -> None:
-        self.create_subscription(
-            Bool,
-            "/database/measurement_triggered",
-            self._trigger_subscriber_callback,
-            10,
-        )
-
         self._success_publisher = self.create_publisher(
             Bool, "/database/measurement_success", 10
         )
@@ -65,16 +94,53 @@ class DatabaseNode(Node):
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info("Waiting for capture_photo service...")
 
-    def _trigger_subscriber_callback(self, msg: Bool) -> None:
-        self._record_triggered = msg.data
-        if self._record_triggered:
-            self.get_logger().info("----------------------------------------------")
-            self.get_logger().info("[TRIGGER ACTIVATED] Recording started.")
-            self.get_logger().info("----------------------------------------------")
-        else:
-            self.get_logger().info("----------------------------------------------")
-            self.get_logger().info("[TRIGGER DEACTIVATED] Recording stopped.")
-            self.get_logger().info("----------------------------------------------")
+        self._status_service = self.create_service(
+            Trigger, "/database/get_recording_status", self._status_service_callback
+        )
+        self._start_service = self.create_service(
+            Trigger, "/database/start_recording", self._start_service_callback
+        )
+        self._stop_service = self.create_service(
+            Trigger, "/database/stop_recording", self._stop_service_callback
+        )
+        self._toggle_service = self.create_service(
+            Trigger, "/database/toggle_recording", self._toggle_service_callback
+        )
+
+    def _set_recording_state(self, new_state: bool, source: str) -> None:
+        if self._record_triggered == new_state:
+            return
+
+        self._record_triggered = new_state
+        state_str = "started" if new_state else "stopped"
+
+        self.get_logger().info("----------------------------------------------")
+        self.get_logger().info(f"[{source}] Recording {state_str}.")
+        self.get_logger().info("----------------------------------------------")
+
+    def _status_service_callback(self, request, response) -> Trigger.Response:
+        response.success = True
+        response.message = str(self._record_triggered)
+        return response
+
+    def _start_service_callback(self, request, response) -> Trigger.Response:
+        self._set_recording_state(True, "START SERVICE")
+        response.success = True
+        response.message = str(self._record_triggered)
+        return response
+
+    def _stop_service_callback(self, request, response) -> Trigger.Response:
+        self._set_recording_state(False, "STOP SERVICE")
+        response.success = True
+        response.message = str(self._record_triggered)
+        return response
+
+    def _toggle_service_callback(self, request, response) -> Trigger.Response:
+        new_state = not self._record_triggered
+        self._set_recording_state(new_state, "TOGGLE SERVICE")
+        response.success = True
+        response.message = str(self._record_triggered)
+        return response
 
     def _get_callback_for_sensor(self, s_id: int) -> Callable[[Envelope], None]:
         def callback(msg: Envelope) -> None:
