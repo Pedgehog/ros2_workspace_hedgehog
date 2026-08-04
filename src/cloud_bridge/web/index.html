@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Webpage</title>
+</head>
+<body>
+    <h1>Hedgehog Robot Dashboard</h1>
+    <p>Status: <span id="status">Verbinde...</span></p>
+
+    <script>
+        setInterval(async () => {
+            try {
+                let response = await fetch('/api/status');
+                let data = await response.json();
+                document.getElementById('status').innerText = data.status;
+            } catch (e) {
+                document.getElementById('status').innerText = 'Offline';
+            }
+        }, 500);
+    </script>
+</body>
+</html>

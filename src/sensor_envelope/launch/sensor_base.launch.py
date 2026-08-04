@@ -13,7 +13,7 @@ def generate_launch_description():
 
     sensor_ids_arg = DeclareLaunchArgument(
         "sensor_ids",
-        default_value="[1, 2, 3, 4]",
+        default_value="",
         description="List of active sensors",
     )
 
