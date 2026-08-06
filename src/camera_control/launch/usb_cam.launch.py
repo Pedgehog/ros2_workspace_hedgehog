@@ -8,7 +8,6 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    # Konfigurationspfade aus dem camera_control Paket laden
     config_button = os.path.join(
         get_package_share_directory("camera_control"), "config", "cam_button.yaml"
     )
@@ -16,10 +15,9 @@ def generate_launch_description():
         get_package_share_directory("camera_control"), "config", "cam_top.yaml"
     )
 
-    # Launch-Argumente definieren
     namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="camstream",
+        default_value="tdk_robot/camera",
         description="Namespace for camera nodes",
     )
 
@@ -32,7 +30,6 @@ def generate_launch_description():
     namespace = LaunchConfiguration("namespace")
     cams = LaunchConfiguration("cams")
 
-    # Nodes definieren
     cam_button_node = Node(
         package="usb_cam",
         executable="usb_cam_node_exe",

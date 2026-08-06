@@ -7,7 +7,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="data_recording",
+        default_value="tdk_robot/database",
         description="Namespace for all nodes",
     )
 
