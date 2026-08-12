@@ -35,20 +35,21 @@ from cloud_bridge.routes.database import (
 )
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(web_router)
 app.include_router(recording_router)
 app.include_router(ussm_router)
 app.include_router(camera_router)
 app.include_router(system_router)
 app.include_router(database_router)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 class DatabaseRequest(BaseModel):
