@@ -28,12 +28,8 @@ async def websocket_camera(websocket: WebSocket, cam_name: str):
                     break
 
                 if frame and frame_id != last_frame_id:
-                    if frame and frame_id != last_frame_id:
-                        try:
-                            await websocket.send_bytes(frame)
-                            last_frame_id = frame_id
-                        except Exception:
-                            break
+                    await websocket.send_bytes(frame)
+                    last_frame_id = frame_id
 
             await asyncio.sleep(0.01)
     except WebSocketDisconnect:
