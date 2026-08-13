@@ -17,7 +17,6 @@ import time
 import json
 import io
 
-
 # Global reader settings
 
 max_uint8 = 0xFF

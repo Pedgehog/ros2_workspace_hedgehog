@@ -12,7 +12,7 @@ def generate_launch_description():
 
     namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="sensoric",
+        default_value="tdk_robot/sensoric",
         description="Namespace for all nodes",
     )
 
