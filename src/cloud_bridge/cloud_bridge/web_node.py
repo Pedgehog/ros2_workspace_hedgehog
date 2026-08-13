@@ -15,6 +15,7 @@ import json
 import psutil
 from hedgehog_interfaces.srv import GetSensorIds, ManageDatabase
 from tdk_ussm_interfaces.msg import Envelope
+from .github_updater import check_and_update_frontend
 from cloud_bridge.routes.web import router as web_router, set_node as set_web_node
 from cloud_bridge.routes.recording import (
     router as recording_router,
@@ -62,6 +63,11 @@ class WebpageNode(Node):
         self.get_logger().info(
             "Webpage Node for USSM, Cameras & Recording has been started."
         )
+
+        try:
+            check_and_update_frontend()
+        except Exception as e:
+            self.get_logger().warn(f"Automatisches Frontend-Update fehlgeschlagen: {e}")
 
         self.active_sensors = []
         self.ussm_data = {}
