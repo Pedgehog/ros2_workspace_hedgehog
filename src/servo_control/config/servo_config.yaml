@@ -1,0 +1,20 @@
+units:
+  left:
+    # display_name: "Front Right"
+    display_name: "Front Left"
+    z_id: 1
+    y_id: 2
+  middle:
+    # display_name: "Front Left"
+    display_name: "Front Middle"
+    z_id: 7
+    y_id: 8
+  right:
+    # display_name: "Rear Left"
+    display_name: "Front Right"
+    z_id: 10
+    y_id: 9
+
+limits:
+  z_axis: [0, 200]
+  y_axis: [15, 275]

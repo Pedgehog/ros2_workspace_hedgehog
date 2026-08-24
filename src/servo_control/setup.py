@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = "servo_control"
@@ -9,6 +11,8 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
+        (os.path.join("share", package_name, "launch"), glob("launch/*.launch.py")),
+        (os.path.join("share", package_name, "config"), glob("config/*.yaml")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -23,7 +27,8 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "servo_control_node = servo_control.servo_control_node:main",
+            "servo_control_node = servo_control.servo_controller_node:main",
+            "servo_joy_node = servo_control.servo_joy_node:main",
         ],
     },
 )
