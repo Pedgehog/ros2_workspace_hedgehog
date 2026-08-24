@@ -13,7 +13,7 @@ def generate_launch_description():
 
     namespace_arg = DeclareLaunchArgument(
         "namespace",
-        default_value="tdk_robot/camera",
+        default_value="camstream",
         description="Namespace for camera nodes",
     )
 
@@ -45,7 +45,7 @@ def generate_launch_description():
         executable="image_view",
         namespace=namespace,
         name="camera_view_top",
-        remappings=[("image", "cam_top/image_raw")],
+        remappings=[("image", "/camstream/cam_top/image_raw")],
         parameters=[{"autosize": True}],
         condition=LaunchConfigurationNotEquals("cams", "T"),
         output="screen",
@@ -56,7 +56,7 @@ def generate_launch_description():
         executable="image_view",
         namespace=namespace,
         name="camera_view_button",
-        remappings=[("image", "cam_button/image_raw")],
+        remappings=[("image", "/camstream/cam_button/image_raw")],
         parameters=[{"autosize": True}],
         condition=LaunchConfigurationNotEquals("cams", "B"),
         output="screen",

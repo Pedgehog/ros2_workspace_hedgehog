@@ -1,6 +1,6 @@
-from setuptools import setup
-import os
 from glob import glob
+import os
+from setuptools import setup
 
 package_name = "cloud_bridge"
 
@@ -11,14 +11,16 @@ setup(
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
-        (os.path.join("share", package_name, "launch"), glob("launch/*.launch.py")),
-        (os.path.join("share", package_name, "web"), glob("web/*")),
+        (
+            os.path.join("share", package_name, "web"),
+            glob("web/*"),
+        ),
     ],
-    install_requires=["setuptools"],
+    install_requires=["setuptools", "fastapi", "uvicorn"],
     zip_safe=True,
     maintainer="administrator",
-    maintainer_email="administrator@todo.todo",
-    description="Cloud Bridge",
+    maintainer_email="todo@todo.com",
+    description="Cloud Bridge for FastAPI and ROS 2",
     license="TODO",
     tests_require=["pytest"],
     entry_points={
