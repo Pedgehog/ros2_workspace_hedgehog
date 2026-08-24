@@ -9,6 +9,7 @@ def generate_launch_description():
     data_recording_dir = get_package_share_directory("data_recording")
     sensor_envelope_dir = get_package_share_directory("sensor_envelope")
     camera_control_dir = get_package_share_directory("camera_control")
+    servo_control_dir = get_package_share_directory("servo_control")
 
     data_recording_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -31,6 +32,13 @@ def generate_launch_description():
         launch_arguments={"namespace": "tdk_robot/camera"}.items(),
     )
 
+    servo_control_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(servo_control_dir, "launch", "servo_control.launch.py")
+        ),
+        launch_arguments={"namespace": "tdk_robot/servo"}.items(),
+    )
+
     webpage_dir = get_package_share_directory("cloud_bridge")
     webpage_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -44,6 +52,7 @@ def generate_launch_description():
             data_recording_launch,
             sensor_base_launch,
             camera_control_launch,
+            servo_control_launch,
             webpage_launch,
         ]
     )
