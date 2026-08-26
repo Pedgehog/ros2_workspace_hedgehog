@@ -13,9 +13,10 @@ import cv2
 import uvicorn
 import json
 import psutil
+
 from hedgehog_interfaces.srv import GetSensorIds, ManageDatabase
 from tdk_ussm_interfaces.msg import Envelope
-from .github_updater import check_and_update_frontend
+
 from cloud_bridge.routes.web import router as web_router, set_node as set_web_node
 from cloud_bridge.routes.recording import (
     router as recording_router,
@@ -30,27 +31,27 @@ from cloud_bridge.routes.system import (
     router as system_router,
     set_node_reference as set_system_node,
 )
+
 from cloud_bridge.routes.database import (
     router as database_router,
     set_node as set_database_node,
 )
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 app.include_router(web_router)
 app.include_router(recording_router)
 app.include_router(ussm_router)
 app.include_router(camera_router)
 app.include_router(system_router)
 app.include_router(database_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class DatabaseRequest(BaseModel):
@@ -63,11 +64,6 @@ class WebpageNode(Node):
         self.get_logger().info(
             "Webpage Node for USSM, Cameras & Recording has been started."
         )
-
-        try:
-            check_and_update_frontend()
-        except Exception as e:
-            self.get_logger().warn(f"Automatisches Frontend-Update fehlgeschlagen: {e}")
 
         self.active_sensors = []
         self.ussm_data = {}
@@ -100,30 +96,24 @@ class WebpageNode(Node):
         set_database_node(self)
 
         self.create_subscription(
-            Bool, "/tdk_robot/database/measurement_success", self._success_callback, 10
-        )
-        self._status_client = self.create_client(
-            Trigger, "/tdk_robot/database/get_recording_status"
-        )
-        self._start_client = self.create_client(
-            Trigger, "/tdk_robot/database/start_recording"
-        )
-        self._stop_client = self.create_client(
-            Trigger, "/tdk_robot/database/stop_recording"
-        )
-        self._toggle_client = self.create_client(
-            Trigger, "/tdk_robot/database/toggle_recording"
-        )
-        self._db_management_service = self.create_client(
-            ManageDatabase, "/tdk_robot/database/manage_database"
+            Bool, "/database/measurement_success", self._success_callback, 10
         )
 
-        client = self.create_client(
-            GetSensorIds, "/tdk_robot/sensoric/get_active_sensors"
+        self._status_client = self.create_client(
+            Trigger, "/database/get_recording_status"
         )
+        self._start_client = self.create_client(Trigger, "/database/start_recording")
+        self._stop_client = self.create_client(Trigger, "/database/stop_recording")
+        self._toggle_client = self.create_client(Trigger, "/database/toggle_recording")
+
+        self._db_management_service = self.create_client(
+            ManageDatabase, "/database/manage_database"
+        )
+
+        client = self.create_client(GetSensorIds, "/sensoric/get_active_sensors")
         while not client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(
-                "Waiting for service '/tdk_robot/sensoric/get_active_sensors'..."
+                "Waiting for service '/sensoric/get_active_sensors'..."
             )
 
         future = client.call_async(GetSensorIds.Request())
@@ -271,10 +261,11 @@ class WebpageNode(Node):
         return False
 
     def get_ussm_settings(self) -> dict:
-        client = self.create_client(Trigger, "/tdk_robot/sensoric/get_ussm_settings")
+        client = self.create_client(Trigger, "/sensoric/get_ussm_settings")
+
         if not client.wait_for_service(timeout_sec=1.0):
             self.get_logger().warn(
-                "Service /tdk_robot/sensoric/get_ussm_settings nicht verfügbar!"
+                "Service /sensoric/get_ussm_settings nicht verfügbar!"
             )
             return {}
 
@@ -297,12 +288,16 @@ class WebpageNode(Node):
                 req_list = ManageDatabase.Request()
                 req_list.action = "list"
                 req_list.db_name = ""
-                res_list = self._db_management_service.call(req_list)
+                future_list = self._db_management_service.call_async(req_list)
+                rclpy.spin_until_future_complete(self, future_list, timeout_sec=1.0)
+                res_list = future_list.result()
 
                 req_curr = ManageDatabase.Request()
                 req_curr.action = "current"
                 req_curr.db_name = ""
-                res_curr = self._db_management_service.call(req_curr)
+                future_curr = self._db_management_service.call_async(req_curr)
+                rclpy.spin_until_future_complete(self, future_curr, timeout_sec=1.0)
+                res_curr = future_curr.result()
 
                 databases = (
                     list(res_list.available_db_names)
@@ -326,7 +321,9 @@ class WebpageNode(Node):
                 req.action = "create"
                 req.db_name = db_name
 
-                result = self._db_management_service.call(req)
+                future = self._db_management_service.call_async(req)
+                rclpy.spin_until_future_complete(self, future, timeout_sec=1.0)
+                result = future.result()
                 if result:
                     return result.success
         except Exception as e:
@@ -340,7 +337,9 @@ class WebpageNode(Node):
                 req.action = "switch"
                 req.db_name = db_name
 
-                result = self._db_management_service.call(req)
+                future = self._db_management_service.call_async(req)
+                rclpy.spin_until_future_complete(self, future, timeout_sec=1.0)
+                result = future.result()
                 if result:
                     return result.success
         except Exception as e:

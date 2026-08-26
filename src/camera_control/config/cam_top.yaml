@@ -4,7 +4,7 @@
     image_width: 1024
     image_height: 576
     pixel_format: "yuyv"
-    framerate: 12.0
+    framerate: 30.0
     brightness: 100
     camera_name: "top_cam"
 

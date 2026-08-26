@@ -5,6 +5,7 @@ from typing import Dict, Callable
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger
 from hedgehog_interfaces.srv import Capture, GetSensorIds, ManageDatabase
+from hedgehog_interfaces.srv import ManageDatabase
 from tdk_ussm_interfaces.msg import Envelope
 from .utils.database.database import Database
 from .utils.database.database_senoric import SensorDB
@@ -54,12 +55,10 @@ class DatabaseNode(Node):
         self._record_triggered: bool = False
 
     def _fetch_active_sensors_from_service(self) -> list:
-        client = self.create_client(
-            GetSensorIds, "/tdk_robot/sensoric/get_active_sensors"
-        )
+        client = self.create_client(GetSensorIds, "/sensoric/get_active_sensors")
         while not client.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(
-                "Waiting for service '/tdk_robot/sensoric/get_active_sensors'..."
+                "Waiting for service '/sensoric/get_active_sensors'..."
             )
 
         future = client.call_async(GetSensorIds.Request())
@@ -97,32 +96,24 @@ class DatabaseNode(Node):
         timeout_count = 0
         max_timeout = 3.0
         while not self.cli.wait_for_service(timeout_sec=1.0):
-            timeout_count += 1
-            self.get_logger().info(
-                f"Waiting for capture_photo service... ({timeout_count}s)"
-            )
-            if timeout_count >= max_timeout:
-                self.get_logger().warn(
-                    "Capture service not available, continuing anyway."
-                )
-                break
+            self.get_logger().info("Waiting for capture_photo service...")
 
         self._status_service = self.create_service(
-            Trigger, "get_recording_status", self._status_service_callback
+            Trigger, "/database/get_recording_status", self._status_service_callback
         )
         self._start_service = self.create_service(
-            Trigger, "start_recording", self._start_service_callback
+            Trigger, "/database/start_recording", self._start_service_callback
         )
         self._stop_service = self.create_service(
-            Trigger, "stop_recording", self._stop_service_callback
+            Trigger, "/database/stop_recording", self._stop_service_callback
         )
         self._toggle_service = self.create_service(
-            Trigger, "toggle_recording", self._toggle_service_callback
+            Trigger, "/database/toggle_recording", self._toggle_service_callback
         )
 
         self._db_management_service = self.create_service(
             ManageDatabase,
-            "manage_database",
+            "/database/manage_database",
             self._manage_database_service_callback,
         )
 
@@ -201,6 +192,9 @@ class DatabaseNode(Node):
                 response.success = True
                 response.message = f"Database '{db_name}' created successfully."
                 response.available_db_names = self._get_all_db_files(output_dir)
+                self.get_logger().info(
+                    f"[DB MANAGEMENT] Created new database: {db_name}"
+                )
             except Exception as e:
                 response.success = False
                 response.message = f"Failed to create database: {str(e)}"
@@ -238,6 +232,9 @@ class DatabaseNode(Node):
                 response.success = True
                 response.message = f"Successfully switched to database '{db_name}'."
                 response.available_db_names = self._get_all_db_files(output_dir)
+                self.get_logger().info(
+                    f"[DB MANAGEMENT] Switched active database to: {db_name}"
+                )
             except Exception as e:
                 response.success = False
                 response.message = f"Failed to switch database: {str(e)}"
@@ -246,7 +243,7 @@ class DatabaseNode(Node):
 
         else:
             response.success = False
-            response.message = f"Unknown action '{action}'."
+            response.message = f"Unknown action '{action}'. Use 'current', 'list', 'create', or 'switch'."
             response.available_db_names = self._get_all_db_files(output_dir)
             return response
 
@@ -264,6 +261,9 @@ class DatabaseNode(Node):
     def _check_measurement_id(self, new_sensor_id: int) -> int:
         new_measurment = self._sdb.get_or_create_measurement(new_sensor_id)
         if new_measurment != self._old_measurment_id:
+            self.get_logger().info(
+                f"[NEW MEASUREMENT] ID changed from {self._old_measurment_id} to {new_measurment}"
+            )
             self._trigger_capture()
         self._old_measurment_id = new_measurment
         return self._old_measurment_id
@@ -271,18 +271,29 @@ class DatabaseNode(Node):
     def _envelope_callback(self, msg: Envelope, s_id: int) -> None:
         if not self._record_triggered:
             return
+
         try:
             meas_id = self._check_measurement_id(s_id)
-            self._sdb.insert_new_envelope(
-                s_id, meas_id, list(msg.time_axis), list(msg.amplitudes)
+
+            envelope_id, _ = self._sdb.insert_new_envelope(
+                s_id,
+                meas_id,
+                list(msg.time_axis),
+                list(msg.amplitudes),
             )
+
+            self.get_logger().info(
+                f"[ENVELOPE SAVED] Sensor {s_id} -> Measurement ID: {meas_id} | Envelope ID: {envelope_id}"
+            )
+
             self._publish_success()
+
         except Exception as e:
-            self.get_logger().error(f"[ERROR] Failed to save envelope: {str(e)}")
+            self.get_logger().error(
+                f"[ERROR] Failed to save envelope for sensor {s_id}: {str(e)}"
+            )
 
     def _trigger_capture(self) -> None:
-        if not self.cli.service_is_ready():
-            return
         req = Capture.Request()
         future = self.cli.call_async(req)
         future.add_done_callback(self.capture_response_callback)
@@ -290,12 +301,27 @@ class DatabaseNode(Node):
     def capture_response_callback(self, future) -> None:
         try:
             response = future.result()
-            if response.success:
-                for path in response.file_paths:
-                    self._sdb.insert_new_picture(self._old_measurment_id, path)
+
+            success = response.success
+            file_paths = response.file_paths
+            message = response.message
+
+            if success:
+                self.get_logger().info(f"[MEASUREMENT SUCCESS] {message}")
+                self.get_logger().info(f"   Files: {file_paths}")
+
+                for path in file_paths:
+                    _, _ = self._sdb.insert_new_picture(self._old_measurment_id, path)
+                    self.get_logger().info(f"   -> Image linked: {path}")
+
                 self._publish_success()
+            else:
+                self.get_logger().error(
+                    f"[MEASUREMENT ERROR] Capture failed: {message}"
+                )
+
         except Exception as e:
-            self.get_logger().error(f"[SERVICE ERROR] Capture failed: {e}")
+            self.get_logger().error(f"[SERVICE ERROR] Capture service call failed: {e}")
 
     def _publish_success(self) -> None:
         success_msg = Bool()
