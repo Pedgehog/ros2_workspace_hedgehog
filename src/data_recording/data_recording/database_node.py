@@ -83,16 +83,16 @@ class DatabaseNode(Node):
         self._db.init_db()
 
     def _init_communication(self) -> None:
-        self._success_publisher = self.create_publisher(
-            Bool, "/database/measurement_success", 10
-        )
+        self._success_publisher = self.create_publisher(Bool, "measurement_success", 10)
 
         for topic, s_id in self._sensor_map.items():
             self.create_subscription(
                 Envelope, topic, self._get_callback_for_sensor(s_id), 10
             )
 
-        self.cli = self.create_client(Capture, "/tdk_robot/camera/capture_photo")
+        self.cli = self.create_client(
+            Capture, "/tdk_robot/sensoric/camera/capture_photo"
+        )
 
         timeout_count = 0
         max_timeout = 3.0
