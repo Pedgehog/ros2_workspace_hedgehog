@@ -5,7 +5,7 @@ from typing import Dict, Callable
 from std_msgs.msg import Bool
 from std_srvs.srv import Trigger
 from hedgehog_interfaces.srv import Capture, GetSensorIds, ManageDatabase
-from tdk_ussm_interfaces.msg import Envelope
+from tdk_ussm_interfaces.msg import Envelope, ServoPositions
 from .utils.database.database import Database
 from .utils.database.database_senoric import SensorDB
 
@@ -13,7 +13,7 @@ from .utils.database.database_senoric import SensorDB
 class DatabaseNode(Node):
     def __init__(self) -> None:
         super().__init__("database_node")
-
+        self._latest_servo_positions = {}
         self._init_parameters()
         self._init_database()
         self._init_communication()
@@ -124,6 +124,13 @@ class DatabaseNode(Node):
             ManageDatabase,
             "manage_database",
             self._manage_database_service_callback,
+        )
+
+        self.create_subscription(
+            ServoPositions,
+            "/tdk_robot/servo/servo_positions",
+            self._servo_positions_callback,
+            10,
         )
 
     def _set_recording_state(self, new_state: bool, source: str) -> None:
@@ -293,6 +300,16 @@ class DatabaseNode(Node):
             if response.success:
                 for path in response.file_paths:
                     self._sdb.insert_new_picture(self._old_measurment_id, path)
+
+                print(self._latest_servo_positions)
+                for group, (y, z) in self._latest_servo_positions.items():
+                    self._sdb.insert_servo_position(
+                        measurement_id=self._old_measurment_id,
+                        group_name=group,
+                        y=y,
+                        z=z,
+                    )
+
                 self._publish_success()
         except Exception as e:
             self.get_logger().error(f"[SERVICE ERROR] Capture failed: {e}")
@@ -301,6 +318,9 @@ class DatabaseNode(Node):
         success_msg = Bool()
         success_msg.data = True
         self._success_publisher.publish(success_msg)
+
+    def _servo_positions_callback(self, msg) -> None:
+        self._latest_servo_positions[msg.group_name] = (msg.y, msg.z)
 
 
 def main() -> None:

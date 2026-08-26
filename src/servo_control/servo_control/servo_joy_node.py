@@ -47,7 +47,7 @@ class ServoJoyNode(Node):
 
         self.create_subscription(Joy, joy_topic, self.joy_callback, 10)
         self.create_subscription(
-            ServoPositions, "/servo_positions", self.servo_positions_callback, 10
+            ServoPositions, "servo_positions", self.servo_positions_callback, 10
         )
 
         self.cli_move = self.create_client(SetServoUnit, "set_servo_unit")

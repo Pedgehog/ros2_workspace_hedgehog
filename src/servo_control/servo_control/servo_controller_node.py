@@ -68,7 +68,7 @@ class ServoControlNode(Node):
     def _init_ros(self) -> None:
         self.servo_pub = self.create_publisher(
             ServoPositions,
-            "/servo_positions",
+            "servo_positions",
             10,
         )
 
