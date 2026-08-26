@@ -16,7 +16,7 @@ class TriggerNode(Node):
 
         self.settings = self._load_ussm_config()
 
-        self.declare_parameter("sensor_ids", "")
+        self.declare_parameter("sensor_ids", [0, 1, 2, 3, 4])
         param_value = self.get_parameter("sensor_ids").value
         raw_sensor_ids = []
 
@@ -48,7 +48,8 @@ class TriggerNode(Node):
         )
 
         self.cli = self.create_client(
-            DistanceStreamoutService, "/tdk_ussm/req_dist_streamout"
+            DistanceStreamoutService,
+            "req_dist_streamout",
         )
 
         self.get_logger().info("Warte auf Service im Namespace 'sensoric'...")

@@ -25,7 +25,7 @@ class RecordingControllerNode(Node):
         )
 
         self.create_subscription(
-            Bool, "/database/measurement_success", self._success_callback, 10
+            Bool, "/tdk_robot/database/measurement_success", self._success_callback, 10
         )
 
         self._toggle_client = self.create_client(Trigger, "/database/toggle_recording")

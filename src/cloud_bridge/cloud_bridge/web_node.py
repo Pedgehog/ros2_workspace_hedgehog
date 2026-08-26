@@ -144,13 +144,13 @@ class WebpageNode(Node):
 
         self.create_subscription(
             Image,
-            "/camstream/cam_button/image_raw",
+            "/tdk_robot/sensoric/camera/cam_button/image_raw",
             self.cam_button_callback,
             qos_profile,
         )
         self.create_subscription(
             Image,
-            "/camstream/cam_top/image_raw",
+            "/tdk_robot/sensoric/camera/cam_top/image_raw",
             self.cam_top_callback,
             qos_profile,
         )
