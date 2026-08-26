@@ -1,8 +1,8 @@
+from setuptools import find_packages, setup
 import os
 from glob import glob
-from setuptools import find_packages, setup
 
-package_name = "servo_control"
+package_name = "robot_bringup"
 
 setup(
     name=package_name,
@@ -12,23 +12,16 @@ setup(
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
         (os.path.join("share", package_name, "launch"), glob("launch/*.launch.py")),
-        (os.path.join("share", package_name, "config"), glob("config/*.yaml")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
     maintainer="administrator",
     maintainer_email="traktor.koeppl@gmail.com",
-    description="Package for servo controlling and servo position logic",
+    description="TODO: Package description",
     license="TODO: License declaration",
     extras_require={
         "test": [
             "pytest",
-        ],
-    },
-    entry_points={
-        "console_scripts": [
-            "servo_control_node = servo_control.servo_controller_node:main",
-            "servo_joy_node = servo_control.servo_joy_node:main",
         ],
     },
 )

@@ -1,0 +1,12 @@
+settings:
+  order: [4, 3, 6, 5, 2, 1]
+  sensorpositions:
+    right:
+      right: 1
+      left: 2
+    left:
+      right: 3
+      left: 4
+    center:
+      right: 5
+      left: 6

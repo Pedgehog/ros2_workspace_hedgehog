@@ -8,11 +8,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
-# Hier fügst du deine .srv Datei hinzu
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetMode.srv"
   "srv/GetSensorIds.srv"
   "srv/Capture.srv"
+  "srv/ManageDatabase.srv"
+  "srv/SetServoUnit.srv"
+  "srv/SavePreset.srv"
 )
 
 if(BUILD_TESTING)
