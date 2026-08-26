@@ -20,7 +20,7 @@ class ServoJoyNode(Node):
     BTN_LEFT = 11
     BTN_RIGHT = 12
 
-    ENABLE_AXIS_IDX = 5
+    ENABLE_AXIS_IDX = 2
 
     LIMIT_Y_MIN, LIMIT_Y_MAX = 15, 275
     LIMIT_Z_MIN, LIMIT_Z_MAX = 0, 170
