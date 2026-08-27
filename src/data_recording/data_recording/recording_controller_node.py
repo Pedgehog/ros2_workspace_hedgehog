@@ -7,6 +7,9 @@ import time
 
 
 class RecordingControllerNode(Node):
+    ENABLE_AXIS_IDX = 5
+    START_RECORD = 0
+
     def __init__(self) -> None:
         super().__init__("recording_controller_node")
 
@@ -31,14 +34,24 @@ class RecordingControllerNode(Node):
         self._toggle_client = self.create_client(Trigger, "/database/toggle_recording")
 
     def _joy_callback(self, msg: Joy) -> None:
-        if len(msg.buttons) > 0 and msg.buttons[0] == 1:
+        is_deadman_active = (
+            len(msg.axes) > self.ENABLE_AXIS_IDX
+            and msg.axes[self.ENABLE_AXIS_IDX] < 0.0
+        )
+        is_button_pressed = (
+            len(msg.buttons) > self.START_RECORD and msg.buttons[self.START_RECORD] == 1
+        )
+
+        if is_deadman_active and is_button_pressed:
             current_time = time.time()
 
             if current_time - self._last_toggle_time < self._debounce_threshold:
                 return
 
             self._last_toggle_time = current_time
-            self.get_logger().info("[CONTROL] Button A pressed. Requesting toggle...")
+            self.get_logger().info(
+                "[CONTROL] Deadman and Button pressed. Requesting toggle..."
+            )
 
             if not self._toggle_client.wait_for_service(timeout_sec=0.1):
                 self.get_logger().error("[CONTROL] Toggle service not available!")

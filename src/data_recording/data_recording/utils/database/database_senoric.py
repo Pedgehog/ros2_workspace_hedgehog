@@ -1,7 +1,7 @@
 from typing import Dict, List
 from pathlib import Path
 from .database import Database
-from ..database.models import Measurement, SensorEnvelope, MeasurementPicture
+from .models import Measurement, SensorEnvelope, MeasurementPicture, ServoPosition
 
 
 class SensorDB:
@@ -79,3 +79,16 @@ class SensorDB:
             session.add(picture)
             session.flush()
             return picture.id, measurement_id
+
+    def insert_servo_position(
+        self, measurement_id: int, group_name: str, y: int, z: int
+    ):
+        with self._db.session_scope() as session:
+            pos = ServoPosition(
+                measurement_id=measurement_id,
+                group_name=group_name,
+                y_value=y,
+                z_value=z,
+            )
+            session.add(pos)
+            session.flush()
