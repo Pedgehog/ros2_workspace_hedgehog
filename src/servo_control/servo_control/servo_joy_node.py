@@ -20,7 +20,7 @@ class ServoJoyNode(Node):
     BTN_LEFT = 11
     BTN_RIGHT = 12
 
-    ENABLE_AXIS_IDX = 5
+    ENABLE_AXIS_IDX = 2
 
     LIMIT_Y_MIN, LIMIT_Y_MAX = 15, 275
     LIMIT_Z_MIN, LIMIT_Z_MAX = 0, 170
@@ -47,7 +47,7 @@ class ServoJoyNode(Node):
 
         self.create_subscription(Joy, joy_topic, self.joy_callback, 10)
         self.create_subscription(
-            ServoPositions, "/servo_positions", self.servo_positions_callback, 10
+            ServoPositions, "servo_positions", self.servo_positions_callback, 10
         )
 
         self.cli_move = self.create_client(SetServoUnit, "set_servo_unit")

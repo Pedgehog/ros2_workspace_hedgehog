@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from ..database import Base
+from .database import Base
 
 
 class Measurement(Base):
@@ -19,6 +19,10 @@ class Measurement(Base):
 
     pictures = relationship(
         "MeasurementPicture", back_populates="measurement", cascade="all, delete-orphan"
+    )
+
+    servo_positions = relationship(
+        "ServoPosition", back_populates="measurement", cascade="all, delete-orphan"
     )
 
     def __init__(
@@ -67,3 +71,26 @@ class MeasurementPicture(Base):
     def __init__(self, measurement_id: int, path: str):
         self.measurement_id = measurement_id
         self.path = path
+
+
+class ServoPosition(Base):
+    __tablename__ = "servo_positions"
+
+    id = Column(Integer, primary_key=True)
+    group_name = Column(String, nullable=False)
+    y_value = Column(Integer, nullable=False)
+    z_value = Column(Integer, nullable=False)
+
+    measurement_id = Column(
+        Integer, ForeignKey("measurements.id", ondelete="CASCADE"), nullable=False
+    )
+
+    measurement = relationship("Measurement", back_populates="servo_positions")
+
+    def __init__(
+        self, measurement_id: int, group_name: str, y_value: int, z_value: int
+    ):
+        self.measurement_id = measurement_id
+        self.group_name = group_name
+        self.y_value = y_value
+        self.z_value = z_value
