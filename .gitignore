@@ -3,9 +3,12 @@ install/
 log/
 logs/
 output/
-
+output_doku/
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .pyc
+
+
+.env
