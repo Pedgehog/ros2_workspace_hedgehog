@@ -34,6 +34,10 @@ from cloud_bridge.routes.database import (
     router as database_router,
     set_node as set_database_node,
 )
+from cloud_bridge.routes.outputfiles import (
+    router as outputfiles_router,
+    set_node as set_outputfiles_node,
+)
 
 app = FastAPI()
 
@@ -51,6 +55,7 @@ app.include_router(ussm_router)
 app.include_router(camera_router)
 app.include_router(system_router)
 app.include_router(database_router)
+app.include_router(outputfiles_router)
 
 
 class DatabaseRequest(BaseModel):
@@ -98,6 +103,7 @@ class WebpageNode(Node):
         set_camera_node(self)
         set_system_node(self)
         set_database_node(self)
+        set_outputfiles_node(self)
 
         self.create_subscription(
             Bool, "/tdk_robot/database/measurement_success", self._success_callback, 10
