@@ -31,7 +31,9 @@ class RecordingControllerNode(Node):
             Bool, "/tdk_robot/database/measurement_success", self._success_callback, 10
         )
 
-        self._toggle_client = self.create_client(Trigger, "/database/toggle_recording")
+        self._toggle_client = self.create_client(
+            Trigger, "/tdk_robot/database/toggle_recording"
+        )
 
     def _joy_callback(self, msg: Joy) -> None:
         is_deadman_active = (
@@ -53,7 +55,7 @@ class RecordingControllerNode(Node):
                 "[CONTROL] Deadman and Button pressed. Requesting toggle..."
             )
 
-            if not self._toggle_client.wait_for_service(timeout_sec=0.1):
+            if not self._toggle_client.wait_for_service(timeout_sec=1.0):
                 self.get_logger().error("[CONTROL] Toggle service not available!")
                 return
 
